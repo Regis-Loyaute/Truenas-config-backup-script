@@ -3,7 +3,7 @@ import subprocess
 import requests
 import schedule
 import time
-from datetime import datetime
+import logging
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -19,10 +19,10 @@ scheduled_time = os.environ['SCHEDULED_TIME']  # Time to run the job
 
 # Set directory for backups
 backup_main_dir = backuploc
-
-# Create directory for backups (Location)
 os.makedirs(backup_main_dir, exist_ok=True)
 
+# Create directory for backups
+os.mknod(backup_main_dir, exist_ok=True)
 
 def backup():
     # Use appropriate extension if we are exporting the secret seed
@@ -31,7 +31,6 @@ def backup():
     # Generate file name
     file_name = f"{subprocess.check_output('hostname').decode().strip()}-TrueNAS-{datetime.now().strftime('%Y%m%d%H%M%S')}.{file_ext}"
 
-    # API call to backup config and include secret seed
     response = requests.post(
         f"{server_url}/api/v2.0/config/save",
         headers={
@@ -40,11 +39,13 @@ def backup():
             "Content-Type": "application/json"
         },
         json={"secretseed": sec_seed.lower() == "true"},
-        verify=False  # Bypass SSL certificate verification
+        verify=False,  # Bypass SSL certificate verification
+        stream=True,  # Stream the response content
     )
 
     with open(os.path.join(backup_main_dir, file_name), "wb") as f:
-        f.write(response.content)
+        for chunk in response.iter_content(chunk_size=8192):
+            f.write(chunk)
 
     # The next section checks for and deletes old backups
     if max_nr_of_files != 0:
@@ -59,11 +60,13 @@ def backup():
                 file_to_remove = file_list[i]
                 os.remove(os.path.join(backup_main_dir, file_to_remove))
 
+    # Print message before starting the backup
+    print("Starting backup...")
 
-# Schedule the job
-schedule.every().day.at(scheduled_time).do(backup)
+    # Keep the script running
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
-# Keep the script running
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+    # Print message after the backup is complete
+    print("Backup completed.")
