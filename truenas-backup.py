@@ -4,6 +4,7 @@ import requests
 import schedule
 import time
 import logging
+from datetime import datetime
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -20,9 +21,6 @@ scheduled_time = os.environ['SCHEDULED_TIME']  # Time to run the job
 # Set directory for backups
 backup_main_dir = backuploc
 os.makedirs(backup_main_dir, exist_ok=True)
-
-# Create directory for backups
-os.mknod(backup_main_dir, exist_ok=True)
 
 def backup():
     # Use appropriate extension if we are exporting the secret seed
@@ -60,13 +58,16 @@ def backup():
                 file_to_remove = file_list[i]
                 os.remove(os.path.join(backup_main_dir, file_to_remove))
 
-    # Print message before starting the backup
-    print("Starting backup...")
+# Schedule the backup function
+schedule.every().day.at(scheduled_time).do(backup)
 
-    # Keep the script running
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+# Print message before starting the backup
+print("Starting backup...")
 
-    # Print message after the backup is complete
-    print("Backup completed.")
+# Keep the script running
+while True:
+    schedule.run_pending()
+    time.sleep(1)
+
+# Print message after the backup is complete
+print("Backup completed.")
