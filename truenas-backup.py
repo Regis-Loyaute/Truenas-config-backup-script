@@ -6,6 +6,10 @@ import time
 import logging
 from datetime import datetime
 from dotenv import load_dotenv
+import urllib3
+
+# Disable InsecureRequestWarning
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Load environment variables from .env file
 load_dotenv()
