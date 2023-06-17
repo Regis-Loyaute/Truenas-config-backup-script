@@ -6,16 +6,9 @@ services:
     environment:
       - API_KEY=1-GDePtgDAEDtqf2NE8svx34ijI4sRkJjNRXoV1cQEMqBeAqrWBvcBVeg4q2xuWP0I
       - SEC_SEED=true
-      - BACKUPLOC=/mnt/truenas-backup
-      - MAXNR_OF_FILES=10
-      - SERVER_URL=https://truenas
-      - SCHEDULED_TIME=01:00
+      - BACKUPLOC=/app/truenas-backup
+      - MAXNR_OF_FILES=14
+      - SERVER_URL=https://truenas.homelabing.com
+      - SCHEDULED_TIME=03:00
     volumes:
-      - truenas-backup:/mnt/truenas-backup
-volumes:
-  truenas-backup:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /mnt/truenas-backup
+      - /mnt/truenas-backup:/app/truenas-backup
